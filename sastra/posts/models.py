@@ -1,9 +1,9 @@
 from django.db import models
 from django.urls import reverse
 from django.conf import settings
+from django.utils.text import slugify
 import misaka
-from groups.models import Group
-# Create your models here.
+from .models import Group
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -25,7 +25,6 @@ class Post(models.Model):
     def get_absolute_url(self):
         return reverse("posts:single", kwargs={"username": self.user.username, 
                                                 "pk": self.pk })
-
     class Meta:
         ordering = ['-created_at']
         unique_together = ['user','message']
