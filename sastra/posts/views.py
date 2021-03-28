@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 
 from django.http import Http404
 from django.views import generic
-
+from django.contrib import messages
 from braces.views import SelectRelatedMixin
 
 from . import models
@@ -18,17 +18,19 @@ class PostList(SelectRelatedMixin, generic.ListView):
     model = models.Post
     select_related = ('user','group')
 
-class UserPosts(generic.Listviews):
+class UserPosts(generic.ListView):
     model = models.Post
-    template_name = 'posts/user_post_list.html'
+    template_name = "posts/user_post_list.html"
 
     def get_queryset(self):
-        try: 
-            self.user = User.objects.prefetch_related('posts').get(username__iexact=self.kwargs.get('username'))
+        try:
+            self.post_user = User.objects.get(
+                username__iexact=self.kwargs.get("username")
+            )
         except User.DoesNotExist:
             raise Http404
         else:
-            return self.post_user.posts.all()
+            return self.post_user.post.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -56,12 +58,12 @@ class DeletePost(LoginRequiredMixin, SelectRelatedMixin, generic.DeleteView):
     model = models.Post
     select_related = ('user','group')
 
-    succes_url = reverse_lazy('posts:all')
+    success_url = reverse_lazy('posts:all')
 
     def get_queryset(self):
         return super().get_queryset().filter(user__id=self.request.user.id)
     
     def delete(self,*args,**kwargs):
-        messages.succes(self.request, 'Post Deleted')
+        messages.success(self.request, 'Post Deleted')
         return super().delete(*args,**kwargs)
     
